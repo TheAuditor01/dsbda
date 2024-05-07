@@ -1,0 +1,211 @@
+
+// For WordCount.java
+
+Create a file named WordCount.java and open editor
+Paste below code into that file and save and keep the editor open
+
+<--
+
+package org.myorg;
+
+import java.io.IOException;
+import java.util.*;
+
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.conf.*;
+import org.apache.hadoop.io.*;
+import org.apache.hadoop.mapred.*;
+import org.apache.hadoop.util.*;
+
+public class WordCount {
+
+    public static class Map extends MapReduceBase implements Mapper<LongWritable, Text, Text, IntWritable> {
+        private final static IntWritable one = new IntWritable(1);
+        private Text word = new Text();
+
+        public void map(LongWritable key, Text value, OutputCollector<Text, IntWritable> output, Reporter reporter)
+                throws IOException {
+            String line = value.toString();
+            StringTokenizer tokenizer = new StringTokenizer(line);
+            while (tokenizer.hasMoreTokens()) {
+                word.set(tokenizer.nextToken());
+                output.collect(word, one);
+            }
+        }
+    }
+
+    public static class Reduce extends MapReduceBase implements Reducer<Text, IntWritable, Text, IntWritable> {
+        public void reduce(Text key, Iterator<IntWritable> values, OutputCollector<Text, IntWritable> output,
+                Reporter reporter) throws IOException {
+            int sum = 0;
+            while (values.hasNext()) {
+                sum += values.next().get();
+            }
+            output.collect(key, new IntWritable(sum));
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        JobConf conf = new JobConf(WordCount.class);
+        conf.setJobName("wordcount");
+        conf.setOutputKeyClass(Text.class);
+        conf.setOutputValueClass(IntWritable.class);
+
+        conf.setMapperClass(Map.class);
+        conf.setCombinerClass(Reduce.class);
+        conf.setReducerClass(Reduce.class);
+
+        conf.setInputFormat(TextInputFormat.class);
+        conf.setOutputFormat(TextOutputFormat.class);
+
+        FileInputFormat.setInputPaths(conf, new Path(args[0]));
+        FileOutputFormat.setOutputPath(conf, new Path(args[1]));
+
+        JobClient.runJob(conf);
+    }
+}
+
+
+-->
+
+- First, see if hadoop user is present or not - by typing command 
+	
+**	su hadoop
+
+user can be present with different name, please check accordingly
+
+if command runs and asks for password - enter - Pass@123
+and if it does not work, ask the faculty.
+
+type in command - 
+	
+**	cd
+
+(this will take us to home directory)
+
+after type in 
+
+**	ls
+
+check for folder named --> hadoop or hadoop-3.x.x there might be version or without version folder
+
+
+to check if hadoop can run or not in same home directory run command
+
+**	start-all.sh
+
+
+if output is as follows - it means hadoop is started
+
+''''
+hadoop@ubuntu:~$ start-all.sh
+WARNING: Attempting to start all Apache Hadoop daemons as hadoop in 10 seconds.
+WARNING: This is not a recommended production deployment configuration.
+WARNING: Use CTRL-C to abort.
+Starting namenodes on [localhost]
+Starting datanodes
+Starting secondary namenodes [ubuntu]
+Starting resourcemanager
+Starting nodemanagers
+hadoop@ubuntu:~$ 
+
+''''
+
+if above command does not work - remember we looked for folder named hadoop or hadoop-3.x.x or something
+go into that folder and try above command - 
+command to do into that folder
+
+	cd hadoop (or that foldername woth version)
+
+after doing both , start-all.sh doesnot start, means hadoop is not properly installed
+
+
+after check if all nodes are started or not, by typing in command - 
+	
+**	jps
+	
+--output will contain 6 lines -
+	49840 NameNode
+	50405 ResourceManager
+	50540 NodeManager
+	50221 SecondaryNameNode
+	50910 Jps
+	49983 DataNode
+
+(numbers can be different , order can be different , no worry)
+
+
+now create a folder give whatever name you want
+lets give - B1
+so type in 
+
+**	mkdir B1
+
+**	cd B1
+
+** 	nano WordCount.java
+
+in it paste in the code we had in WordCount.java file in our editor
+
+paste using - Ctrl + Shift + V
+
+then - press - Ctrl + X
+
+then - press - Y
+
+then press ENTER
+
+
+----
+type in command
+
+**	mkdir wordcount_classes/
+
+** 	hadoop classpath
+
+(output will be like - /home/hadoop/hadoop/etc/hadoop:/home/hadoop/hadoop/share/hadoop/common/lib/*:/home/hadoop/hadoop/share/hadoop/common/*:/home/hadoop/hadoop/share/hadoop/hdfs:/home/hadoop/hadoop/share/hadoop/hdfs/lib/*:/home/hadoop/hadoop/share/hadoop/hdfs/*:/home/hadoop/hadoop/share/hadoop/mapreduce/*:/home/hadoop/hadoop/share/hadoop/yarn:/home/hadoop/hadoop/share/hadoop/yarn/lib/*:/home/hadoop/hadoop/share/hadoop/yarn/*)
+
+
+copy output of above command and paste it after $ sign in below command 
+
+** 	javac -cp $/home/hadoop/hadoop/etc/hadoop:/home/hadoop/hadoop/share/hadoop/common/lib/*:/home/hadoop/hadoop/share/hadoop/common/*:/home/hadoop/hadoop/share/hadoop/hdfs:/home/hadoop/hadoop/share/hadoop/hdfs/lib/*:/home/hadoop/hadoop/share/hadoop/hdfs/*:/home/hadoop/hadoop/share/hadoop/mapreduce/*:/home/hadoop/hadoop/share/hadoop/yarn:/home/hadoop/hadoop/share/hadoop/yarn/lib/*:/home/hadoop/hadoop/share/hadoop/yarn/* -d wordcount_classes/ WordCount.java
+
+
+(( command without class path
+	javac -cp $...... -d wordcount_classes/ WordCount.java
+
+now type in
+
+** jar -cvf wordcount.jar -C wordcount_classes/ .
+
+** hdfs dfs -mkdir -p /map/wordcount/input0 /map/wordcount/output0
+
+** nano testdata.txt
+
+type some data inside it that will be used to count words
+then - press - Ctrl + X
+
+then - press - Y
+
+then press ENTER
+
+
+** 	hdfs dfs -put testdata.txt /map/wordcount/input0
+
+
+** 	hadoop jar wordcount.jar org.myorg.WordCount /map/wordcount/input0/testdata.txt /map/wordcount//output0/map_output
+
+** 	hdfs dfs -cat /map/wordcount/output0/map_output/part-00000
+
+---- this will print output of the program.
+
+
+
+
+
+
+
+
+
+
+
