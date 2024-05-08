@@ -1,0 +1,37 @@
+Scala Program (B4)
+
+
+Code - 
+
+import org.apache.spark.sql.SparkSession
+object WordCount {
+ def main(args: Array[String]): Unit = {
+ val spark = SparkSession.builder()
+ .appName("WordCount")
+ .getOrCreate()
+ val textFile = spark.sparkContext.textFile("fruits.txt")
+ val words = textFile.flatMap(line => line.split(" "))
+ val wordCounts = words.map(word => (word, 1))
+ .reduceByKey((count1, count2) => count1 + count2)
+ val sortedWordCounts = wordCounts.sortBy(wordCount => wordCount._2, ascending =
+false)
+ sortedWordCounts.foreach(wordCount => println(s"${wordCount._1} : ${wordCount._2}"))
+ spark.stop()
+ }
+} 
+
+
+
+
+Open terminal type in 
+
+** 	spark-shell
+
+then,
+
+**	:load 'path/to/WordCount.scala'
+
+** 	WordCount.main(Array())
+
+
+it will give output
