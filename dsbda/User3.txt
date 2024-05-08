@@ -1,0 +1,444 @@
+Data Wrangling, I
+Perform the following operations using Python on any open source dataset (e.g., data.csv)
+1. Import all the required Python Libraries.
+2. Locate an open source data from the web (e.g., https://www.kaggle.com). Provide a clear
+description of the data and its source (i.e., URL of the web site).
+3. Load the Dataset into pandas dataframe.
+4. Data Preprocessing: check for missing values in the data using pandas isnull(), describe()
+function to get some initial statistics. Provide variable descriptions. Types of variables etc.
+Check the dimensions of the data frame.
+5. Data Formatting and Data Normalization: Summarize the types of variables by checking
+the data types (i.e., character, numeric, integer, factor, and logical) of the variables in the
+data set. If variables are not in the correct data type, apply proper type conversions.
+6. Turn categorical variables into quantitative variables in Python
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+
+----------------------------------------------
+
+iris = sns.load_dataset("iris")                                                                                                 # Step 1: Load the Iris dataset from seaborn
+
+print(iris.head())                                                                                                              # Step 2: Check the first few rows of the dataset
+
+print(iris.isnull().sum())                                                                                                      # Step 3: Check for missing values in the data
+print('-------------------------------------')
+
+print(iris.info())                                                                                                              # Step 4: Display variable descriptions and types of variables
+print('-------------------------------------')
+
+iris.columns = iris.columns.str.lower()                                                                                                                                              # Step 5: Data Formatting and Data Normalization        # Convert column names to lowercase for consistency
+
+scaler = StandardScaler()                                                                                                                                                           # Data normalization        # We'll use StandardScaler for normalization
+iris[['sepal_length', 'sepal_width', 'petal_length', 'petal_width']] = scaler.fit_transform(iris[['sepal_length', 'sepal_width', 'petal_length', 'petal_width']])
+
+print(iris.head())                                                                                                                                                                  # Check the first few rows of the dataset after formatting and normalization
+
+label_encoder = LabelEncoder()                                                                                                                                                      # Step 6: Turn categorical variables into quantitative variables in Python (if required)        # Convert species column (categorical) into quantitative variables using Label Encoding
+iris['species_encoded'] = label_encoder.fit_transform(iris['species'])
+
+print(iris.shape)                                                                                                                                                                     # Check the dimensions of the dataframe
+
+----------------------------------------------
+
+
+Data Wrangling II
+Create an “Academic performance” dataset of students and perform the following operations using
+Python.
+1. Scan all variables for missing values and inconsistencies. If there are missing values and/or
+inconsistencies, use any of the suitable techniques to deal with them.
+2. Scan all numeric variables for outliers. If there are outliers, use any of the suitable
+techniques to deal with them.
+3. Apply data transformations on at least one of the variables. The purpose of this
+transformation should be one of the following reasons: to change the scale for better
+understanding of the variable, to convert a non-linear relation into a linear one, or to
+decrease the skewness and convert the distribution into a normal distribution.
+
+------------------------------------------------------------------------------------------
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("StudentsPerformance.csv")
+
+print("Missing Values:")
+print(df.isnull().sum())
+print("-------------------------------------")
+
+m_avg = df['math score'].mean()                     # Fill missing values in 'math score' with the mean
+df['math score'].fillna(value=m_avg, inplace=True)
+
+df.dropna(inplace=True)                             # Drop rows with missing values
+
+plt.figure(figsize=(10, 6))                         # Visualize outliers in numeric variables using boxplots
+df.boxplot(['math score', 'reading score', 'writing score'])
+plt.title('Boxplot of Math, Reading, and Writing Scores')
+plt.ylabel('Scores')
+plt.show()
+
+z_scores = (df['math score'] - df['math score'].mean()) / df['math score'].std()            # Identify and treat outliers (e.g., using z-score or IQR method)
+outliers_index = z_scores[abs(z_scores) > 3].index                                          # For simplicity, let's use z-score to detect and remove outliers in 'math score'
+df.drop(outliers_index, inplace=True)
+
+df['math score'] = np.log(df['math score'])         # Apply data transformations (e.g., logarithmic transformation) on one variable
+
+print("Modified DataFrame:")                        # Print the modified dataframe
+print(df.head())
+
+-------------------------------------------------------------------
+
+Descriptive Statistics - Measures of Central Tendency and variability
+Perform the following operations on any open source dataset (e.g., data.csv)
+1. Provide summary statistics (mean, median, minimum, maximum, standard deviation) for
+a dataset (age, income etc.) with numeric variables grouped by one of the qualitative
+(categorical) variable. For example, if your categorical variable is age groups and
+quantitative variable is income, then provide summary statistics of income grouped by the
+age groups. Create a list that contains a numeric value for each response to the categorical
+variable.
+2. Write a Python program to display some basic statistical details like percentile, mean,
+standard deviation etc. of the species of ‘Iris-setosa’, ‘Iris-versicolor’ and ‘Iris-versicolor’
+of iris.csv dataset.
+
+---------------------------------------------------------------------------
+
+import pandas as pd
+import seaborn as sns
+iris_data = sns.load_dataset("iris")
+
+summary_stats = iris_data.groupby('species').describe()
+print("Task 1: Summary statistics grouped by species")
+print(summary_stats)
+
+setosa_stats = iris_data[iris_data['species'] == 'Iris-setosa'].describe()
+versicolor_stats = iris_data[iris_data['species'] == 'Iris-versicolor'].describe()
+virginica_stats = iris_data[iris_data['species'] == 'Iris-virginica'].describe()
+
+print("\nTask 2: Summary statistics for different species in the iris dataset")
+print("Summary statistics for Iris-setosa:")
+print(setosa_stats)
+print("\nSummary statistics for Iris-versicolor:")
+print(versicolor_stats)
+print("\nSummary statistics for Iris-virginica:")
+print(virginica_stats)
+
+------------------------------------------------------------------
+
+Data Analytics I
+Create a Linear Regression Model using Python/R to predict home prices using Boston Housing
+Dataset (https://www.kaggle.com/c/boston-housing). The Boston Housing dataset contains
+information about various houses in Boston through different parameters. There are 506 samples
+and 14 feature variables in this datase
+
+--------------------------------------------------------------
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+
+data = pd.read_csv("boston_housing.csv")
+
+X = data.drop('MEDV', axis=1)                                                            # Separate features and target variable         # MEDV is the target variable (price)
+y = data['MEDV']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+model = LinearRegression()                      # Create the linear regression model
+
+model.fit(X_train, y_train)                     # Train the model
+
+y_pred = model.predict(X_test)                  # Make predictions on the testing set
+
+mse = mean_squared_error(y_test, y_pred)        # Evaluate model performance using mean squared error (MSE)
+print(f"Mean Squared Error: {mse:.2f}")
+
+------------------------------------------------------------------------
+
+Data Analytics II
+1. Implement logistic regression using Python/R to perform classification on
+Social_Network_Ads.csv dataset.
+2. Compute Confusion matrix to find TP, FP, TN, FN, Accuracy, Error rate, Precision, Recall
+on the given dataset.
+
+-----------------------------------------------------------------------
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score
+
+# Load data
+data = pd.read_csv("Social_Network_Ads.csv")
+
+# Separate features and target variable
+X = data.drop('Purchased', axis=1)
+y = data['Purchased']
+
+# Split data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Create a scaler object (StandardScaler in this case)
+scaler = StandardScaler()
+
+# Fit the scaler on the training data (to learn scaling parameters)
+scaler.fit(X_train)
+
+# Transform both training and testing data using the fitted scaler
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Train the logistic regression model
+model = LogisticRegression()
+model.fit(X_train_scaled, y_train)
+
+# Make predictions on the scaled testing data
+y_pred = model.predict(X_test_scaled)
+
+# Evaluate model performance
+cm = confusion_matrix(y_test, y_pred)
+print("Confusion Matrix:")
+print(cm)
+
+TP = cm[1][1]
+FP = cm[0][1]
+TN = cm[0][0]
+FN = cm[1][0]
+
+accuracy = accuracy_score(y_test, y_pred)
+print("Accuracy:", accuracy)
+
+error_rate = 1 - accuracy
+print("Error Rate:", error_rate)
+
+precision = precision_score(y_test, y_pred)
+print("Precision:", precision)
+
+recall = recall_score(y_test, y_pred)
+print("Recall:", recall)
+
+---------------------------------------------------------------------------
+
+Data Analytics III
+1. Implement Simple Naïve Bayes classification algorithm using Python/R on iris.csv dataset.
+2. Compute Confusion matrix to find TP, FP, TN, FN, Accuracy, Error rate, Precision, Recall
+on the given dataset.
+-------------------------------------------------------
+
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score
+
+iris_data = pd.read_csv("iris.csv")
+
+X = iris_data.drop('species', axis=1)
+y = iris_data['species']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+model = GaussianNB()
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+
+cm = confusion_matrix(y_test, y_pred)
+print("Confusion Matrix:")
+print(cm)
+
+TP = cm[1][1]
+FP = cm[0][1]
+TN = cm[0][0]
+FN = cm[1][0]
+
+accuracy = accuracy_score(y_test, y_pred)
+print("Accuracy:", accuracy)
+
+error_rate = 1 - accuracy
+print("Error Rate:", error_rate)
+
+precision = precision_score(y_test, y_pred, average='macro')
+print("Precision:", precision)
+
+recall = recall_score(y_test, y_pred, average='macro')
+print("Recall:", recall)
+
+-------------------------------------------------
+Text Analytics
+1. Extract Sample document and apply following document preprocessing methods:
+Tokenization, POS Tagging, stop words removal, Stemming and Lemmatization.
+2. Create representation of document by calculating Term Frequency and Inverse Document
+Frequency.
+--------------------------------------------------
+
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from nltk.stem import PorterStemmer, WordNetLemmatizer
+from nltk import pos_tag
+from sklearn.feature_extraction.text import TfidfVectorizer
+import re
+
+# Sample document
+document = """
+Natural language processing (NLP) is a field of artificial intelligence (AI) 
+that deals with the interaction between computers and humans using natural language.
+It focuses on the interaction between computers and humans in natural language 
+and explores how to make computers understand and generate human language.
+
+Tokenization:
+Tokenization involves breaking down the text into individual words or tokens.
+
+POS Tagging:
+POS (Part of Speech) tagging involves assigning a part of speech tag (like noun, verb, adjective, etc.) 
+to each word in the text.
+
+Stop Words Removal:
+Stop words are common words (like 'the', 'is', 'and') that often do not contribute much 
+to the meaning of a sentence. They are typically removed during text preprocessing.
+
+Stemming and Lemmatization:
+Stemming involves reducing words to their root form by removing suffixes.
+Lemmatization, on the other hand, involves reducing words to their base or dictionary form.
+
+"""
+
+# Tokenization
+tokens = word_tokenize(document)
+
+# POS Tagging
+pos_tags = pos_tag(tokens)
+
+# Stop Words Removal
+stop_words = set(stopwords.words('english'))
+filtered_tokens = [word for word in tokens if word.lower() not in stop_words]
+
+# Stemming and Lemmatization
+stemmer = PorterStemmer()
+stemmed_tokens = [stemmer.stem(word) for word in filtered_tokens]
+
+lemmatizer = WordNetLemmatizer()
+lemmatized_tokens = [lemmatizer.lemmatize(word) for word in filtered_tokens]
+
+# TF-IDF Representation
+tfidf_vectorizer = TfidfVectorizer()
+tfidf_matrix = tfidf_vectorizer.fit_transform([document])
+
+print("Document Preprocessing Results:")
+print("Tokens:", tokens)
+print("POS Tags:", pos_tags)
+print("Filtered Tokens (After Stop Words Removal):", filtered_tokens)
+print("Stemmed Tokens:", stemmed_tokens)
+print("Lemmatized Tokens:", lemmatized_tokens)
+
+print("\nTF-IDF Representation:")
+print(tfidf_matrix)
+
+---------------------------------------------------------------------
+
+Data Visualization I
+1. Use the inbuilt dataset 'titanic'. The dataset contains 891 rows and contains information
+about the passengers who boarded the unfortunate Titanic ship. Use the Seaborn library to
+see if we can find any patterns in the data.
+2. Write a code to check how the price of the ticket (column name: 'fare') for each passenger
+is distributed by plotting a histogram.
+------------------------------------------------
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Load the Titanic dataset
+titanic_data = sns.load_dataset('titanic')
+
+# Task 1: Explore patterns in the Titanic dataset
+# Let's use a pairplot to visualize relationships between numerical variables
+sns.pairplot(titanic_data)
+plt.title('Pairplot of Titanic Dataset')
+plt.show()
+
+# Task 2: Plot a histogram of ticket prices
+plt.figure(figsize=(10, 6))
+sns.histplot(titanic_data['fare'], bins=30, kde=True)
+plt.title('Distribution of Ticket Prices')
+plt.xlabel('Fare')
+plt.ylabel('Frequency')
+plt.show()
+
+---------------------------------------------------
+
+Data Visualization II
+1. Use the inbuilt dataset 'titanic' as used in the above problem. Plot a box plot for distribution
+of age with respect to each gender along with the information about whether they survived
+or not. (Column names : 'sex' and 'age')
+2. Write observations on the inference from the above statistics.
+
+-------------------------------------------------------
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Load the Titanic dataset
+titanic_data = sns.load_dataset('titanic')
+
+# Plot a boxplot for distribution of age with respect to each gender and survival status
+plt.figure(figsize=(10, 6))
+sns.boxplot(x='sex', y='age', hue='survived', data=titanic_data)
+plt.title('Distribution of Age with Respect to Gender and Survival Status')
+plt.xlabel('Gender')
+plt.ylabel('Age')
+plt.legend(title='Survived', labels=['No', 'Yes'])
+plt.show()
+
+
+-------------------------------------------------------
+
+Data Visualization III
+Download the Iris flower dataset or any other dataset into a DataFrame. (e.g.,
+https://archive.ics.uci.edu/ml/datasets/Iris ). Scan the dataset and give the inference as:
+1. List down the features and their types (e.g., numeric, nominal) available in the dataset.
+2. Create a histogram for each feature in the dataset to illustrate the feature distributions.
+3. Create a boxplot for each feature in the dataset.
+4. Compare distributions and identify outliers.
+
+--------------------------------------------------------
+
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Load the Iris dataset
+iris_data = pd.read_csv("https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data", header=None)
+iris_data.columns = ['sepal_length', 'sepal_width', 'petal_length', 'petal_width', 'species']
+
+# 1. List down the features and their types
+print("Features and their types:")
+print(iris_data.dtypes)
+
+# 2. Create a histogram for each feature
+plt.figure(figsize=(10, 8))
+for i, feature in enumerate(iris_data.columns[:-1]):
+    plt.subplot(2, 2, i+1)
+    sns.histplot(iris_data[feature], kde=True)
+    plt.title(f'Histogram of {feature}')
+    plt.xlabel(feature)
+    plt.ylabel('Frequency')
+plt.tight_layout()
+plt.show()
+
+# 3. Create a boxplot for each feature
+plt.figure(figsize=(10, 8))
+for i, feature in enumerate(iris_data.columns[:-1]):
+    plt.subplot(2, 2, i+1)
+    sns.boxplot(y=iris_data[feature])
+    plt.title(f'Boxplot of {feature}')
+    plt.ylabel(feature)
+plt.tight_layout()
+plt.show()
+
+# 4. Compare distributions and identify outliers
+# You can visually inspect the boxplots to identify any outliers.
+
+----------------------------------------------------------------------
